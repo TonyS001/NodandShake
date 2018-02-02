@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private long PreTime=0;
     private long TStart=0;
     private int charge=0;
+    private int state=0;
 
     private Vector templateData_x = new Vector(300,5);
     private Vector templateData_y = new Vector(300,5);
@@ -67,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
             nodcount=0;
+            nod.setText("点头次数为"+nodcount);
+            evaluate.setText("停止扫码");
         }
     }
 
@@ -212,30 +215,34 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if (charge==1){
-                        if (value_a[0]>12.2){
+                        if (value_a[0]>1.8){
                             charge=2;
+                            state=0;
                             compareData_x.clear();
                             compareData_y.clear();
                             compareData_z.clear();
                         }else if(Math.abs(value_a[2])<0.2) {
                             PreTime = SystemClock.elapsedRealtime();
-                            if ((PreTime-TStart)>220){
+                            if ((PreTime-TStart)>260){
                                 if (nodcount>0){
                                     dtw();
-                                    if (DTW<2000){
+                                    if (DTW<10){
                                         nodcount++;
-                                        templateData_x.clear();
-                                        templateData_y.clear();
-                                        templateData_z.clear();
-                                        for (int i=0;i<compareData_x.size();++i){
-                                            templateData_x.add(compareData_x.get(i));
-                                            templateData_y.add(compareData_y.get(i));
-                                            templateData_z.add(compareData_z.get(i));
+                                        state = 1;
+                                        if (DTW < 2) {
+                                            templateData_x.clear();
+                                            templateData_y.clear();
+                                            templateData_z.clear();
+                                            for (int i=0;i<compareData_x.size();++i){
+                                                templateData_x.add(compareData_x.get(i));
+                                                templateData_y.add(compareData_y.get(i));
+                                                templateData_z.add(compareData_z.get(i));
+                                            }
                                         }
-                                        evaluate.setText(String.valueOf(DTW));
                                     }
                                 }else {
                                     nodcount++;
+                                    state = 1;
                                     for (int i=0;i<compareData_x.size();++i){
                                         templateData_x.add(compareData_x.get(i));
                                         templateData_y.add(compareData_y.get(i));
@@ -255,17 +262,20 @@ public class MainActivity extends AppCompatActivity {
                             charge=0;
                         }
                     }
-
-                    nod.setText("点头次数为"+nodcount);
                     break;
                 }
 
                 case Sensor.TYPE_GYROSCOPE:{
                     value_g = sensorEvent.values;
-
+                    if (charge==0){
+                        if (Math.abs(value_g[1])>1.8){
+                            state=0;
+                        }
+                    }
                     if (charge==1){
-                        if (value_g[1]>10.3){
+                        if (Math.abs(value_g[1])>1.8){
                             charge=2;
+                            state=0;
                             compareData_x.clear();
                             compareData_y.clear();
                             compareData_z.clear();
@@ -277,6 +287,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
                 }
+            }
+
+            nod.setText("点头次数为"+nodcount);
+            if (state==1){
+                evaluate.setText("开始扫码");
+            }else{
+                evaluate.setText("停止扫码");
             }
         }
 
