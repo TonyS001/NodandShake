@@ -9,7 +9,14 @@
         android:layout_gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="150sp"/>
+        android:textSize="120sp"/>
+
+    <TextView
+        android:id="@+id/dtw"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="120sp"/>
 
     <Button
         android:id="@+id/clear"

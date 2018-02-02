@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
 import java.util.Vector;
 
 public class MainActivity extends AppCompatActivity {
@@ -20,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private Sensor AccelerSensor;
     private Sensor GyroSensor;
     private TextView nod;
+    private TextView evaluate;
     private Button clearBtn;
     private double nodcount = 0;
     private long PreTime=0;
@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity {
 
     float [] value_a;
     float [] value_g;
-    int ifempty_g=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,16 +52,17 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.main);
         nod = (TextView)findViewById(R.id.nod);
+        evaluate=(TextView)findViewById(R.id.dtw) ;
         clearBtn=(Button)findViewById(R.id.clear);
         clearBtn.setOnClickListener(new myOnClickListener());
 
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         AccelerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         GyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        sensorManager.registerListener(sensorEventListener, AccelerSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(sensorEventListener, GyroSensor, SensorManager.SENSOR_DELAY_NORMAL);
-        //TStart = SystemClock.elapsedRealtime();
+        sensorManager.registerListener(sensorEventListener,AccelerSensor,SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListener, GyroSensor,SensorManager.SENSOR_DELAY_NORMAL);
     }
+
     private class myOnClickListener implements View.OnClickListener {
         @Override
         public void onClick(View view) {
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void dtw(){
-        DTW=0;
+        //DTW=0;
         D();
         weight();
         DTW = weight_x * d_x * d_x + weight_y * d_y * d_y + weight_z * d_z * d_z;
@@ -98,15 +98,17 @@ public class MainActivity extends AppCompatActivity {
                     ((float)templateData_x.get(0)-(float)compareData_x.get(i));
             dij=dij+d[i-1][0];
             d[i][0]=dij;
+
         }
         for (int i=1;i<len_t;++i){
             dij=((float)templateData_x.get(i)-(float)compareData_x.get(0))*
                     ((float)templateData_x.get(i)-(float)compareData_x.get(0));
             dij=dij+d[0][i-1];
             d[0][i]=dij;
+
             for (int j=1;j<len_c;++j){
                 dij=((float)templateData_x.get(i)-(float)compareData_x.get(j))*
-                        ((float)templateData_x.get(i)-(float)compareData_x.get(j));
+                        ((float)templateData_x.get(i)-(float)templateData_x.get(i));
                 float min=Math.min(d[j-1][i-1],d[j-1][i]);
                 min=Math.min(min,d[j][i-1]);
                 dij=dij+min;
@@ -201,34 +203,44 @@ public class MainActivity extends AppCompatActivity {
             switch (sensorEvent.sensor.getType()){
                 case Sensor.TYPE_ACCELEROMETER:{
                     value_a = sensorEvent.values;
+
                     if (charge==0){
-                        compareData_x.clear();
-                        compareData_y.clear();
-                        compareData_z.clear();
-                    }
-                    if(value_a[2]>1.5 || value_a[2]<-1.4 ){
-                        if (charge==0) {
-                            charge = 1;
+                        if(value_a[2]>1.5){
+                            charge=1;
                             TStart = SystemClock.elapsedRealtime();
                         }
                     }
-                    if(Math.abs(value_a[2])<0.2) {
-                        if (charge==1){
+
+                    if (charge==1){
+                        if (value_a[0]>12.2){
+                            charge=2;
+                            compareData_x.clear();
+                            compareData_y.clear();
+                            compareData_z.clear();
+                        }else if(Math.abs(value_a[2])<0.2) {
                             PreTime = SystemClock.elapsedRealtime();
-                            if ((PreTime-TStart)>260){
+                            if ((PreTime-TStart)>220){
                                 if (nodcount>0){
                                     dtw();
-                                    if (DTW<1){
+                                    if (DTW<2000){
                                         nodcount++;
-                                        templateData_x=compareData_x;
-                                        templateData_y=compareData_y;
-                                        templateData_z=compareData_z;
+                                        templateData_x.clear();
+                                        templateData_y.clear();
+                                        templateData_z.clear();
+                                        for (int i=0;i<compareData_x.size();++i){
+                                            templateData_x.add(compareData_x.get(i));
+                                            templateData_y.add(compareData_y.get(i));
+                                            templateData_z.add(compareData_z.get(i));
+                                        }
+                                        evaluate.setText(String.valueOf(DTW));
                                     }
                                 }else {
                                     nodcount++;
-                                    templateData_x=compareData_x;
-                                    templateData_y=compareData_y;
-                                    templateData_z=compareData_z;
+                                    for (int i=0;i<compareData_x.size();++i){
+                                        templateData_x.add(compareData_x.get(i));
+                                        templateData_y.add(compareData_y.get(i));
+                                        templateData_z.add(compareData_z.get(i));
+                                    }
                                 }
                             }
                             charge=0;
@@ -237,24 +249,35 @@ public class MainActivity extends AppCompatActivity {
                             compareData_z.clear();
                         }
                     }
+
+                    if (charge==2){
+                        if(Math.abs(value_a[2])<0.2){
+                            charge=0;
+                        }
+                    }
+
                     nod.setText("点头次数为"+nodcount);
                     break;
                 }
+
                 case Sensor.TYPE_GYROSCOPE:{
                     value_g = sensorEvent.values;
-                    if (value_g[1]>0.23)
-                        charge=0;
-                    if(charge==1){
-                        compareData_x.add(value_g[0]);
-                        compareData_y.add(value_g[1]);
-                        compareData_z.add(value_g[2]);
+
+                    if (charge==1){
+                        if (value_g[1]>10.3){
+                            charge=2;
+                            compareData_x.clear();
+                            compareData_y.clear();
+                            compareData_z.clear();
+                        }else{
+                            compareData_x.add(value_g[0]);
+                            compareData_y.add(value_g[1]);
+                            compareData_z.add(value_g[2]);
+                        }
                     }
                     break;
                 }
             }
-
-            //PreTime = SystemClock.elapsedRealtime();
-
         }
 
         @Override
