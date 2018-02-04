@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         AccelerSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         GyroSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        sensorManager.registerListener(sensorEventListener,AccelerSensor,SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(sensorEventListener, GyroSensor,SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(sensorEventListener,AccelerSensor,400000);
+        sensorManager.registerListener(sensorEventListener, GyroSensor,400000);
     }
 
     private class myOnClickListener implements View.OnClickListener {
@@ -208,14 +208,14 @@ public class MainActivity extends AppCompatActivity {
                     value_a = sensorEvent.values;
 
                     if (charge==0){
-                        if(value_a[2]>1.5){
+                        if(value_a[2]>1.3){
                             charge=1;
                             TStart = SystemClock.elapsedRealtime();
                         }
                     }
 
                     if (charge==1){
-                        if (value_a[0]>1.8){
+                        if (value_a[0]>2){
                             charge=2;
                             state=0;
                             compareData_x.clear();
@@ -223,7 +223,8 @@ public class MainActivity extends AppCompatActivity {
                             compareData_z.clear();
                         }else if(Math.abs(value_a[2])<0.2) {
                             PreTime = SystemClock.elapsedRealtime();
-                            if ((PreTime-TStart)>260){
+                            //nod.setText(String.valueOf(PreTime-TStart));
+                            if ((PreTime-TStart)>130){
                                 if (nodcount>0){
                                     dtw();
                                     if (DTW<10){
@@ -268,12 +269,12 @@ public class MainActivity extends AppCompatActivity {
                 case Sensor.TYPE_GYROSCOPE:{
                     value_g = sensorEvent.values;
                     if (charge==0){
-                        if (Math.abs(value_g[1])>1.8){
+                        if (Math.abs(value_g[1])>2){
                             state=0;
                         }
                     }
                     if (charge==1){
-                        if (Math.abs(value_g[1])>1.8){
+                        if (Math.abs(value_g[1])>2){
                             charge=2;
                             state=0;
                             compareData_x.clear();
