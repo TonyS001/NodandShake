@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
             for (int j=1;j<len_c;++j){
                 dij=((float)templateData_x.get(i)-(float)compareData_x.get(j))*
-                        ((float)templateData_x.get(i)-(float)templateData_x.get(i));
+                        ((float)templateData_x.get(i)-(float)compareData_x.get(j));
                 float min=Math.min(d[j-1][i-1],d[j-1][i]);
                 min=Math.min(min,d[j][i-1]);
                 dij=dij+min;
@@ -227,10 +227,12 @@ public class MainActivity extends AppCompatActivity {
                             if ((PreTime-TStart)>130){
                                 if (nodcount>0){
                                     dtw();
+                                    evaluate.setText(String.valueOf(DTW));
                                     if (DTW<10){
                                         nodcount++;
+
                                         state = 1;
-                                        if (DTW < 2) {
+                                        if (DTW < 4) {
                                             templateData_x.clear();
                                             templateData_y.clear();
                                             templateData_z.clear();
@@ -291,11 +293,11 @@ public class MainActivity extends AppCompatActivity {
             }
 
             nod.setText("点头次数为"+nodcount);
-            if (state==1){
-                evaluate.setText("开始扫码");
-            }else{
-                evaluate.setText("停止扫码");
-            }
+            //if (state==1){
+                //evaluate.setText("开始扫码");
+            //}else{
+                //evaluate.setText("停止扫码");
+            //}
         }
 
         @Override
